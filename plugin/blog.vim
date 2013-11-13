@@ -73,6 +73,7 @@ command! -nargs=? -complete=custom,CompEditType BlogList exec('py blog_list(<f-a
 command! -nargs=? -complete=custom,CompEditType BlogNew exec('py blog_new(<f-args>)')
 command! -nargs=? -complete=custom,CompSave BlogSave exec('py blog_save(<f-args>)')
 command! -nargs=? -complete=custom,CompPrev BlogPreview exec('py blog_preview(<f-args>)')
+command! -nargs=? -complete=custom,CompPrev BlogSocial exec('py blog_social()')
 command! -nargs=1 -complete=file BlogUpload exec('py blog_upload_media(<f-args>)')
 command! -nargs=1 BlogOpen exec('py blog_guess_open(<f-args>)')
 command! -nargs=? BlogSwitch exec('py blog_config_switch(<f-args>)')
@@ -550,8 +551,34 @@ class ContentStruct(object):
 
         self.buffer_meta.update(meta)
 
-    def publish_social(self):
-        pass
+    def post_social(self):
+        if g_data.vimpress_temp_dir == '':
+            g_data.vimpress_temp_dir = tempfile.mkdtemp(suffix="vimpress")
+
+        if not self.buffer_meta["url"]:
+            echomsg('you have to publish your post first before post to the social website!')
+            return
+
+        html = r"""
+<html>
+<head>
+<meta charset='utf-8' />
+<title>socialHelper</title>
+</head>
+<body>
+    <div id='social_helper_div'>
+        <p class='social_helper_p social_weibo'>我刚写了一篇博文:《%(title)s》, 网址: %(url)s </p>
+    </div> 
+</body>
+</html>
+        """ % dict(title=self.buffer_meta["title"], url=self.buffer_meta["url"])
+        
+        with open(os.path.join(
+                g_data.vimpress_temp_dir, "socialHelper_temp.html"), 'w') as f:
+            f.write(html.encode('utf-8'))
+
+        echomsg('try to post to the social website, see your browser what happen')
+        webbrowser.open("file://%s" % f.name)
 
     def save_post(self):
         ps = self.post_struct_meta
@@ -957,6 +984,17 @@ def blog_preview(pub = "local"):
             echomsg("You have to login in the browser to preview the post when save as draft.")
     else:
         raise VimPressException("Invalid option: %s " % pub)
+
+@exception_check
+@vim_encoding_check
+@view_switch(assert_view = "edit")
+def blog_social():
+    """
+    Open a browser window, then post a weibo automatically
+    """
+    cp  = g_data.current_post
+    echomsg('you have to publish the post first when post to the social website!')
+    cp.post_social()
 
 
 @exception_check
