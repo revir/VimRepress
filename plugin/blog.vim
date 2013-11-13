@@ -140,9 +140,12 @@ class DataObject(object):
 
     #CONST
     DEFAULT_LIST_COUNT = "15"
-    IMAGE_TEMPLATE = '<a href="%(url)s">' \
-                     '<img title="%(file)s" alt="%(file)s" src="%(url)s"' \
-                     'class="aligncenter" /></a>'
+    # IMAGE_TEMPLATE = '<a href="%(url)s">' \
+    #                  '<img title="%(file)s" alt="%(file)s" src="%(url)s"' \
+    #                  'class="aligncenter" /></a>'
+    IMAGE_TEMPLATE = '![%(file)s](%(url)s)'
+
+
     MARKER = dict(bg="=========== Meta ============",
               mid="=============================",
               ed="========== Content ==========",
@@ -517,10 +520,12 @@ class ContentStruct(object):
         if self.EDIT_TYPE == "post":
             meta.update(strid=str(struct["postid"]),
             cats=", ".join(struct["categories"]),
-            tags=struct["mt_keywords"])
+            tags=struct["mt_keywords"],
+            url=struct["link"])
             MORE_KEY = "mt_text_more"
         else:
-            meta.update(strid=str(struct["page_id"]))
+            meta.update(strid=str(struct["page_id"]),
+                url=struct["permaLink"])
             MORE_KEY = "text_more"
 
         self.html_text = content = struct["description"]
@@ -544,6 +549,9 @@ class ContentStruct(object):
         meta["content"] = content
 
         self.buffer_meta.update(meta)
+
+    def publish_social(self):
+        pass
 
     def save_post(self):
         ps = self.post_struct_meta
