@@ -559,7 +559,7 @@ class ContentStruct(object):
             echomsg('you have to publish your post first before post to the social website!')
             return
 
-        html = r"""
+        html = u"""
 <html>
 <head>
 <meta charset='utf-8' />
@@ -567,7 +567,7 @@ class ContentStruct(object):
 </head>
 <body>
     <div id='social_helper_div'>
-        <p class='social_helper_p social_weibo'>我刚写了一篇博文:《%(title)s》, 网址: %(url)s </p>
+        <p class='social_helper_p social_weibo'>我刚写了一篇博文:《%(title)s》, 欢迎围观! 阅读地址: %(url)s </p>
     </div> 
 </body>
 </html>
