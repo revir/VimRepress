@@ -161,6 +161,7 @@ class DataObject(object):
     __xmlrpc = None
     __conf_index = 0
     __config = None
+    __socialConfig = None
 
     view = 'edit'
     vimpress_temp_dir = ''
@@ -252,6 +253,26 @@ class DataObject(object):
         return self.__xmlrpc
 
     @property
+    def socialConfig(self):
+        if self.__socialConfig is None or len(self.__socialConfig) == 0:
+            confpsr = SafeConfigParser()
+            confile = os.path.expanduser("~/.vimpressrc")
+            if os.path.exists(confile):
+                vals = []
+                confpsr.read(confile)
+                for sec in confpsr.sections():
+                    if sec == 'social':
+                        vals = [x for x, y in confpsr.items(sec) if y == 'true']
+                        break
+                if len(vals) > 0:
+                    echomsg('social: '+str(vals))
+                    self.__socialConfig = vals
+                else:
+                    echomsg('No social website is set to true in the vimpressrc file!')
+
+        return self.__socialConfig
+
+    @property
     def config(self):
         if self.__config is None or len(self.__config) == 0:
 
@@ -263,8 +284,11 @@ class DataObject(object):
                 conf_list = []
                 confpsr.read(confile)
                 for sec in confpsr.sections():
-                    values = [confpsr.get(sec, i) for i in conf_options]
-                    conf_list.append(dict(zip(conf_options, values)))
+                    if sec == 'social':
+                        pass
+                    else:
+                        values = [confpsr.get(sec, i) for i in conf_options]
+                        conf_list.append(dict(zip(conf_options, values)))
 
                 if len(conf_list) > 0:
                     self.__config = conf_list
@@ -555,6 +579,9 @@ class ContentStruct(object):
         if g_data.vimpress_temp_dir == '':
             g_data.vimpress_temp_dir = tempfile.mkdtemp(suffix="vimpress")
 
+        if not g_data.socialConfig or not len(g_data.socialConfig):
+            echomsg('you didn\'t set any social website in the config!')
+            return 
         if not self.buffer_meta["url"]:
             echomsg('you have to publish your post first before post to the social website!')
             return
@@ -567,11 +594,11 @@ class ContentStruct(object):
 </head>
 <body>
     <div id='social_helper_div'>
-        <p class='social_helper_p social_weibo'>我刚写了一篇博文:《%(title)s》, 欢迎围观! 阅读地址: %(url)s </p>
+        <p class='social_helper_p %(sites)s'>我刚写了一篇博文:《%(title)s》, 欢迎围观! 阅读地址: %(url)s </p>
     </div> 
 </body>
 </html>
-        """ % dict(title=self.buffer_meta["title"], url=self.buffer_meta["url"])
+        """ % dict(sites=' '.join(g_data.socialConfig), title=self.buffer_meta["title"], url=self.buffer_meta["url"])
         
         with open(os.path.join(
                 g_data.vimpress_temp_dir, "socialHelper_temp.html"), 'w') as f:
@@ -993,7 +1020,6 @@ def blog_social():
     Open a browser window, then post a weibo automatically
     """
     cp  = g_data.current_post
-    echomsg('you have to publish the post first when post to the social website!')
     cp.post_social()
 
 
