@@ -741,11 +741,9 @@ def blog_wise_open_view():
     """
     Wisely decides whether to wipe out the content of current buffer or open a new splited window.
     """
-    if vim.current.buffer.name is None and \
-            (vim.eval('&modified') == '0' or
-                len(vim.current.buffer) == 1):
-        vim.command('setl modifiable')
-        del vim.current.buffer[:]
+    if len(vim.current.buffer) == 1 and len(vim.current.buffer[0]) == 0:
+        # vim.command('setl modifiable')
+        # del vim.current.buffer[:]
         vim.command('setl nomodified')
     else:
         vim.command(":new")
